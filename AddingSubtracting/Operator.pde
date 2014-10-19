@@ -7,7 +7,7 @@ class Operator{
   boolean forming;
   int start;  // value (on the number line) of the base of the arrow
   int value;  // size and direction of the arrow
-  float xLoc;  // horizontal location of the arrow (as proportion of window width
+  float xLoc=19*width/20;  // horizontal location of the arrow (as proportion of window width
   boolean selected;
   
   Operator(int startValue){
@@ -28,9 +28,17 @@ class Operator{
   }
   
   void drawArrow(){
+    strokeWeight(width/300);
+    if (selected) color(255,0,0);
+    else color(0);
     //(location[0], location[1], value*scale, bearing, lineWeight);
-    if (value>0){  // up arrow
-      //line(
+    if (value==0){  // dot or double arrow
+      if (forming){
+        line (xLoc,points[start-min][0]-height/(2*(max-min)), xLoc,points[start-min][0]+height/(2*(max-min)));
+      } else{
+        ellipseMode(CENTER);
+        ellipse(xLoc, points[start-min][0],height/(2*(max-min)), height/(2*(max-min)));
+      }
     }
 //    // draw label
 //    if (bearing<=PI){

@@ -26,6 +26,7 @@ void draw(){
   }
   background(255);
   drawNumberLine();
+  testArrow.display();
 }
 
 void drawNumberLine(){
