@@ -23,9 +23,7 @@ void setup(){
   if (frame != null) {
     frame.setResizable(true);
   }
-//  for (int i=0; i<(max-min+1); i++){
-//    points[i][1] = i+min;
-//  }
+  strokeCap(SQUARE);
 }
 
 void draw(){
@@ -33,7 +31,7 @@ void draw(){
   
   // recalculate values that depend on window size (in case of user-resize
   stepSize=int(height*(maxLoc-minLoc)/(max-min));  // negative step size so + value goes up (negative y step)
-  xStepSize=int(width/(maxSteps+6));  // number of horizontal pixels between arrows and number line
+  xStepSize=int(width/(maxSteps+2));  // number of horizontal pixels between arrows and number line
   zeroLoc=int(height*minLoc)-min*stepSize;  //vertical location of the 0 in pixels
   xStart=int(horStartLoc*width);  // x-coordinate of number line (from which arrows are spaced
   
@@ -46,13 +44,13 @@ void draw(){
   for (int i=0; i<stepCount; i++){
     //draw arrows
     if(formingNew){
-      drawStep(runningTotal, steps[i], zeroLoc, stepSize, xStart-(stepCount-i)*xStepSize, color(255,0,0));
+      drawStep(runningTotal, steps[i], zeroLoc, stepSize, xStart-(stepCount-i)*xStepSize, color(255,0,100));
       fill(0);
       textSize(height/25);
       textAlign(CENTER,CENTER);
       text("+"+str(steps[i]), xStart-(stepCount-i)*xStepSize, height*eqnHeight);
     } else{
-      drawStep(runningTotal, steps[i], zeroLoc, stepSize, xStart-(stepCount-i+1)*xStepSize, color(0,0,255));
+      drawStep(runningTotal, steps[i], zeroLoc, stepSize, xStart-(stepCount-i+1)*xStepSize, color(255,0,100));
       fill(0);
       textSize(height/25);
       textAlign(CENTER,CENTER);
@@ -71,7 +69,15 @@ void draw(){
     // draw non-counting, double-headed arrow to invite creation of a new step
     stroke(100);
     strokeWeight(3);
-    line((xStart-xStepSize),(zeroLoc+((runningTotal+1)*stepSize)),(xStart-xStepSize),(zeroLoc+((runningTotal-1)*stepSize)));
+    line((xStart-xStepSize),(zeroLoc+((runningTotal+0.5)*stepSize)),(xStart-xStepSize),(zeroLoc+((runningTotal-0.5)*stepSize)));
+    pushMatrix();
+      translate(xStart-xStepSize,zeroLoc+((runningTotal-1)*stepSize));
+      arrowHead(true, 3*stepSize/4);
+    popMatrix();
+    pushMatrix();
+      translate(xStart-xStepSize,zeroLoc+((runningTotal+1)*stepSize));
+      arrowHead(false, 3*stepSize/4);
+    popMatrix();
     // draw running total under the new step arrow
     fill(0);
     textSize(height/20);
@@ -111,7 +117,8 @@ void drawNumberLine(int min,    // minimum value of number line
   for(int i=min; i<(max+1); i++){  //draw tick marks for whole number locations
     strokeWeight(1);
     stroke(200);
-    line(0,zero+(i*yStep), width, zero+(i*yStep));
+    if (formingNew) line(x-stepCount*xStepSize,zero+(i*yStep), x, zero+(i*yStep));
+    else line(x-(stepCount+1)*xStepSize,zero+(i*yStep), x, zero+(i*yStep));
     strokeWeight(3);
     stroke(0);
     line(x,zero+(i*yStep), x-width/100, zero+(i*yStep));
@@ -154,6 +161,9 @@ void drawStep(int start,  // value of base of arrow
               int xLoc,   // x-coordinate of arrow
               color colour){  // colour of arrow
   int headLength=max(value/2, height/30);
+  strokeWeight(2);
+  stroke(0);
+  line(xLoc,yZero+(yStep*(start+value)),xLoc+xStepSize,yZero+(yStep*(start+value)));
   stroke(colour);
   fill(colour);
   strokeWeight(width/200);
@@ -166,6 +176,12 @@ void drawStep(int start,  // value of base of arrow
     pushMatrix();
       translate(xLoc,yZero+(yStep*(start+value)));
       arrowHead(false, headLength);
+      translate(0, -yStep*value/2);
+      rotate(-PI/2);
+      textSize(xStepSize/3);
+      textAlign(CENTER);
+      fill(0);
+      text(str(value),0,yStep/2);
     popMatrix();
   }else{
     strokeWeight(width/200);
@@ -174,6 +190,12 @@ void drawStep(int start,  // value of base of arrow
     pushMatrix();
       translate(xLoc,yZero+(yStep*(start+value)));
       arrowHead(true, headLength);
+      translate(0, -yStep*value/2);
+      rotate(-PI/2);
+      textSize(xStepSize/3);
+      textAlign(CENTER);
+      fill(0);
+      text("+"+str(value),0,yStep/2);
     popMatrix();
   }
 }
