@@ -1,5 +1,6 @@
 int min=-10;  //minimum value of the number line
 float minLoc=0.9;  //height of the minimum value as proportion of window height
+float eqnHeight=0.95;  // height of equation steps display
 int max=10;  //maximum value of the number line
 float maxLoc=0.02;  //height of the minimum value as proportion of window height
 
@@ -26,6 +27,8 @@ void setup(){
 }
 
 void draw(){
+  int runningTotal=0;  //
+  
   // recalculate values that depend on window size (in case of user-resize
   stepSize=int(height*(maxLoc-minLoc)/(max-min));  // negative step size so + value goes up (negative y step)
   xStepSize=int(width/(maxSteps+6));  // number of horizontal pixels between arrows and number line
@@ -35,10 +38,27 @@ void draw(){
   background(255);
   drawNumberLine(min, max, zeroLoc, xStart, stepSize);
   
-  drawStep(2,3, zeroLoc, stepSize, xStart-xStepSize, color(255,0,0));  // temp testing arrow
+  drawStep(2,3, zeroLoc, stepSize, xStart-2*xStepSize, color(255,0,0));  // temp testing arrow
+  
   
   for (int i=0; i<stepCount; i++){
     //draw arrows
+  }
+  
+  if (formingNew){
+    //draw equation total under number line
+    textSize(height/12);
+    textAlign(CENTER,CENTER);
+    text("="+str(runningTotal), xStart, height*eqnHeight);
+  } else {
+    // draw non-counting, double-headed arrow to invite creation of a new step
+    stroke(100);
+    strokeWeight(3);
+    line((xStart-xStepSize),(zeroLoc+((runningTotal+1)*stepSize)),(xStart-xStepSize),(zeroLoc+((runningTotal-1)*stepSize)));
+    // draw running total under the new step arrow
+    textSize(height/12);
+    textAlign(CENTER,CENTER);
+    text("="+str(runningTotal), xStart-xStepSize, height*eqnHeight);
   }
 
 }
