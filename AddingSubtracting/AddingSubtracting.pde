@@ -3,9 +3,12 @@ float minLoc=0.9;  //height of the minimum value as proportion of window height
 int max=10;  //maximum value of the number line
 float maxLoc=0.02;  //height of the minimum value as proportion of window height
 
-float horStartLoc=0.85;  // location of number line (starting horizontal location) for all arrows to extend left from
+float horStartLoc=0.9;  // location of number line (starting horizontal location) for all arrows to extend left from
 
 int stepSize;  // vertical size of unit step in pixels
+int xStepSize;
+int xStart;
+int zeroLoc;
 int maxSteps=10;  // maximum number of arithmetic steps permitted for the app
 int[] steps = new int[maxSteps];  //contains the steps to be followed in order from 0-9
 int stepCount=0 ;  // the number of steps contained in the current equation
@@ -25,17 +28,23 @@ void setup(){
 void draw(){
   // recalculate values that depend on window size (in case of user-resize
   stepSize=int(height*(maxLoc-minLoc)/(max-min));  // negative step size so + value goes up (negative y step)
-  int zeroLoc=int(height*minLoc)-min*stepSize;  //vertical location of the 0 in pixels
-  int xStart=int(horStartLoc*width);  // x-coordinate of number line (from which arrows are spaced
+  xStepSize=int(width/(maxSteps+6));  // number of horizontal pixels between arrows and number line
+  zeroLoc=int(height*minLoc)-min*stepSize;  //vertical location of the 0 in pixels
+  xStart=int(horStartLoc*width);  // x-coordinate of number line (from which arrows are spaced
   
   background(255);
   drawNumberLine(min, max, zeroLoc, xStart, stepSize);
   
+  drawStep(2,3, zeroLoc, stepSize, xStart-xStepSize, color(255,0,0));  // temp testing arrow
+  
+  for (int i=0; i<stepCount; i++){
+    //draw arrows
+  }
 
 }
 
 void mouseDown(){
-  if (overStart(mouseX, mouseY), zeroLoc, stepSize){
+  if (overStart(mouseX, mouseY, (xStart-xStepSize), zeroLoc, stepSize)){
     //start new arrow
   }
 }
@@ -70,5 +79,17 @@ boolean overStart(int x,  // current x-coordinate of the mouse
       runningTotal=runningTotal+steps[0];
     }
   }
+  return(false);
+}
+
+void drawStep(int start,  // value of base of arrow 
+              int value,  // size and direction of arrow
+              int yZero,  // y-coordinate of 0
+              int yStep,  // pixels per unit (up is positive)
+              int xLoc,   // x-coordinate of arrow
+              color colour){  // colour of arrow
+  stroke(colour);
+  strokeWeight(width/200);
   
+  line(xLoc,yZero+(yStep*start),xLoc,yZero+(yStep*(start+value)));
 }
