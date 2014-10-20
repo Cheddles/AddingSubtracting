@@ -16,6 +16,8 @@ int stepCount=0 ;  // the number of steps contained in the current equation
 
 boolean formingNew = false;  // true if currently dragging a new arrow step
 
+String test="testing";
+
 void setup(){
   size(800,600);
   if (frame != null) {
@@ -38,16 +40,31 @@ void draw(){
   background(255);
   drawNumberLine(min, max, zeroLoc, xStart, stepSize);
   
-  drawStep(2,3, zeroLoc, stepSize, xStart-2*xStepSize, color(255,0,0));  // temp testing arrow
+  // drawStep(2,0, zeroLoc, stepSize, xStart-2*xStepSize, color(255,0,0));  // temp testing arrow
   
   
   for (int i=0; i<stepCount; i++){
     //draw arrows
+    if(formingNew){
+      drawStep(runningTotal, steps[i], zeroLoc, stepSize, xStart-(stepCount-i)*xStepSize, color(255,0,0));
+      fill(0);
+      textSize(height/25);
+      textAlign(CENTER,CENTER);
+      text("+"+str(steps[i]), xStart-(stepCount-i)*xStepSize, height*eqnHeight);
+    } else{
+      drawStep(runningTotal, steps[i], zeroLoc, stepSize, xStart-(stepCount-i+1)*xStepSize, color(0,0,255));
+      fill(0);
+      textSize(height/25);
+      textAlign(CENTER,CENTER);
+      text("+"+str(steps[i]), xStart-(stepCount-i+1)*xStepSize, height*eqnHeight);
+    }
+    runningTotal=runningTotal+steps[i];
   }
   
   if (formingNew){
+    steps[stepCount-1]=formStep(mouseY, zeroLoc+((runningTotal-steps[stepCount-1])*stepSize));
     //draw equation total under number line
-    textSize(height/12);
+    textSize(height/20);
     textAlign(CENTER,CENTER);
     text("="+str(runningTotal), xStart, height*eqnHeight);
   } else {
@@ -56,17 +73,28 @@ void draw(){
     strokeWeight(3);
     line((xStart-xStepSize),(zeroLoc+((runningTotal+1)*stepSize)),(xStart-xStepSize),(zeroLoc+((runningTotal-1)*stepSize)));
     // draw running total under the new step arrow
-    textSize(height/12);
+    fill(0);
+    textSize(height/20);
     textAlign(CENTER,CENTER);
     text("="+str(runningTotal), xStart-xStepSize, height*eqnHeight);
   }
-
+  text(test,300,100);
 }
 
-void mouseDown(){
-  if (overStart(mouseX, mouseY, (xStart-xStepSize), zeroLoc, stepSize)){
-    //start new arrow
+void mousePressed(){
+  test="mouseClicked";
+  int total=0;
+  for(int i=0; i<stepCount; i++){  //go through all values to find running total
+    total=total+steps[i];
   }
+  if (overStart(mouseX, mouseY, (xStart-xStepSize), total, zeroLoc, stepSize)){
+    stepCount++;
+    formingNew=true; 
+  }
+}
+
+void mouseReleased(){
+  formingNew=false;
 }
 
 void drawNumberLine(int min,    // minimum value of number line
@@ -82,6 +110,11 @@ void drawNumberLine(int min,    // minimum value of number line
   fill(0);
   line(x, zero+min*stepSize, x, zero+max*stepSize);  // draw vertical line
   for(int i=min; i<(max+1); i++){  //draw tick marks for whole number locations
+    strokeWeight(1);
+    stroke(200);
+    line(0,zero+(i*yStep), width, zero+(i*yStep));
+    strokeWeight(3);
+    stroke(0);
     line(x,zero+(i*yStep), x-width/100, zero+(i*yStep));
     text(str(i),x+width/100,zero+(i*yStep)-height/200);
   }
@@ -90,16 +123,29 @@ void drawNumberLine(int min,    // minimum value of number line
 boolean overStart(int x,  // current x-coordinate of the mouse
                   int y,  // current y-coordinate of the mouse
                   int xTarget,  // x-coordinate of the target spot
+                  int yVal,  //y value of target
                   int zero,  // y-coordinate of 0
                   int yStep){  // number of vertical pixels per step
-  int runningTotal=0;
+  //int runningTotal=0;
+  int rSquared;
   
-  if (stepCount>0){
-    for (int i=0; i>stepCount; i++){
-      runningTotal=runningTotal+steps[0];
-    }
+//  if (stepCount>0){
+//    for (int i=0; i>stepCount; i++){
+//      runningTotal=runningTotal+steps[0];
+//    }
+//  }
+  rSquared=(x-xTarget)*(x-xTarget)+(y-zero-(yVal*yStep))*(y-zero-(yVal*yStep));
+  test=str(rSquared);
+  if (rSquared<(yStep*yStep)){
+    return true;
+  } else {
+    return false;
   }
-  return(false);
+}
+
+int formStep(int y,
+             int yStart){
+  return (y-yStart)/stepSize;
 }
 
 void drawStep(int start,  // value of base of arrow 
@@ -109,7 +155,12 @@ void drawStep(int start,  // value of base of arrow
               int xLoc,   // x-coordinate of arrow
               color colour){  // colour of arrow
   stroke(colour);
+  fill(colour);
   strokeWeight(width/200);
-  
-  line(xLoc,yZero+(yStep*start),xLoc,yZero+(yStep*(start+value)));
+  if (value==0){
+    ellipseMode(CENTER);
+    ellipse(xLoc,yZero+(yStep*start),yStep/2,yStep/2);
+  }else{
+    line(xLoc,yZero+(yStep*start),xLoc,yZero+(yStep*(start+value)));
+  }
 }
