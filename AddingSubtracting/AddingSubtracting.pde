@@ -10,7 +10,7 @@ int stepSize;  // vertical size of unit step in pixels
 int xStepSize;
 int xStart;
 int zeroLoc;
-int maxSteps=10;  // maximum number of arithmetic steps permitted for the app
+int maxSteps=8;  // maximum number of arithmetic steps permitted for the app
 int[] steps = new int[maxSteps];  //contains the steps to be followed in order from 0-9
 int stepCount=0 ;  // the number of steps contained in the current equation
 
@@ -56,7 +56,7 @@ void draw(){
       fill(0);
       textSize(height/25);
       textAlign(CENTER,CENTER);
-      text("+"+str(steps[i]), xStart-(stepCount-i+1)*xStepSize, height*eqnHeight);
+      text("+("+str(steps[i])+")", xStart-(stepCount-i+1)*xStepSize, height*eqnHeight);
     }
     runningTotal=runningTotal+steps[i];
   }
@@ -78,16 +78,15 @@ void draw(){
     textAlign(CENTER,CENTER);
     text("="+str(runningTotal), xStart-xStepSize, height*eqnHeight);
   }
-  text(test,300,100);
+  //text(test,300,100);
 }
 
 void mousePressed(){
-  test="mouseClicked";
   int total=0;
   for(int i=0; i<stepCount; i++){  //go through all values to find running total
     total=total+steps[i];
   }
-  if (overStart(mouseX, mouseY, (xStart-xStepSize), total, zeroLoc, stepSize)){
+  if ((overStart(mouseX, mouseY, (xStart-xStepSize), total, zeroLoc, stepSize))&&(stepCount<=maxSteps)){
     stepCount++;
     formingNew=true; 
   }
@@ -145,7 +144,7 @@ boolean overStart(int x,  // current x-coordinate of the mouse
 
 int formStep(int y,
              int yStart){
-  return (y-yStart)/stepSize;
+  return int((y-yStart-0.5)/stepSize);
 }
 
 void drawStep(int start,  // value of base of arrow 
@@ -154,13 +153,46 @@ void drawStep(int start,  // value of base of arrow
               int yStep,  // pixels per unit (up is positive)
               int xLoc,   // x-coordinate of arrow
               color colour){  // colour of arrow
+  int headLength=max(value/2, height/30);
   stroke(colour);
   fill(colour);
   strokeWeight(width/200);
   if (value==0){
     ellipseMode(CENTER);
     ellipse(xLoc,yZero+(yStep*start),yStep/2,yStep/2);
+  }else if (value<0){
+    line(xLoc,yZero+(yStep*start),xLoc,yZero+(yStep*(start+value))-headLength);
+    noStroke();
+    pushMatrix();
+      translate(xLoc,yZero+(yStep*(start+value)));
+      arrowHead(false, headLength);
+    popMatrix();
   }else{
-    line(xLoc,yZero+(yStep*start),xLoc,yZero+(yStep*(start+value)));
+    strokeWeight(width/200);
+    line(xLoc,yZero+(yStep*start),xLoc,yZero+(yStep*(start+value))+headLength);
+    noStroke();
+    pushMatrix();
+      translate(xLoc,yZero+(yStep*(start+value)));
+      arrowHead(true, headLength);
+    popMatrix();
+  }
+}
+  
+void arrowHead(boolean up, int headLength){
+  noStroke();
+  if (up){
+    //upright arrowhead
+    beginShape();
+      vertex(0,0);
+      vertex(-headLength/3,headLength);
+      vertex(headLength/3,headLength);
+    endShape(CLOSE);
+  }else{
+    //inverted arrowhead
+    beginShape();
+      vertex(0,0);
+      vertex(-headLength/3,-headLength);
+      vertex(headLength/3,-headLength);
+    endShape(CLOSE);
   }
 }
