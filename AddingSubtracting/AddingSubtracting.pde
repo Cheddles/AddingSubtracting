@@ -15,6 +15,7 @@ int[] steps = new int[maxSteps];  //contains the steps to be followed in order f
 int stepCount=0 ;  // the number of steps contained in the current equation
 
 boolean formingNew = false;  // true if currently dragging a new arrow step
+boolean verbose=false;  // whether the equation at the bottom should be written in verbose +(-2) format or traditional abbreviated -2 format
 
 String test="testing";
 
@@ -43,7 +44,7 @@ void draw(){
   
   for (int i=0; i<stepCount; i++){
     //draw arrows
-    if(formingNew){
+    if((formingNew)||(stepCount==maxSteps)){
       drawStep(runningTotal, steps[i], zeroLoc, stepSize, xStart-(stepCount-i)*xStepSize, color(255,0,100));
       fill(0);
       textSize(height/25);
@@ -59,7 +60,7 @@ void draw(){
     runningTotal=runningTotal+steps[i];
   }
   
-  if (formingNew){
+  if((formingNew)||(stepCount==maxSteps)){
     steps[stepCount-1]=formStep(mouseY, zeroLoc+((runningTotal-steps[stepCount-1])*stepSize));
     //draw equation total under number line
     textSize(height/20);
@@ -92,7 +93,7 @@ void mousePressed(){
   for(int i=0; i<stepCount; i++){  //go through all values to find running total
     total=total+steps[i];
   }
-  if ((overStart(mouseX, mouseY, (xStart-xStepSize), total, zeroLoc, stepSize))&&(stepCount<=maxSteps)){
+  if ((overStart(mouseX, mouseY, (xStart-xStepSize), total, zeroLoc, stepSize))&&(stepCount<maxSteps)){
     stepCount++;
     formingNew=true; 
   }
@@ -151,7 +152,11 @@ boolean overStart(int x,  // current x-coordinate of the mouse
 
 int formStep(int y,
              int yStart){
-  return int((y-yStart-0.5)/stepSize);
+  if (formingNew){
+    return int((y-yStart-0.5)/stepSize);
+  }else{
+    return steps[stepCount-1];
+  }
 }
 
 void drawStep(int start,  // value of base of arrow 
@@ -173,6 +178,9 @@ void drawStep(int start,  // value of base of arrow
   }else if (value<0){
     line(xLoc,yZero+(yStep*start),xLoc,yZero+(yStep*(start+value))-headLength);
     noStroke();
+    for(int i=-1; i>value; i--){
+      ellipse(xLoc, yZero+yStep*(start+i), yStep/3, yStep/3);
+    }
     pushMatrix();
       translate(xLoc,yZero+(yStep*(start+value)));
       arrowHead(false, headLength);
@@ -187,6 +195,9 @@ void drawStep(int start,  // value of base of arrow
     strokeWeight(width/200);
     line(xLoc,yZero+(yStep*start),xLoc,yZero+(yStep*(start+value))+headLength);
     noStroke();
+    for(int i=1; i<value; i++){
+      ellipse(xLoc, yZero+yStep*(start+i), yStep/3, yStep/3);
+    }
     pushMatrix();
       translate(xLoc,yZero+(yStep*(start+value)));
       arrowHead(true, headLength);
