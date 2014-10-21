@@ -45,13 +45,13 @@ void draw(){
   for (int i=0; i<stepCount; i++){
     //draw arrows
     if((formingNew)||(stepCount==maxSteps)){
-      drawStep(runningTotal, steps[i], zeroLoc, stepSize, xStart-(stepCount-i)*xStepSize, color(255,0,100));
+      drawStep(runningTotal, steps[i], zeroLoc, stepSize, xStart-(stepCount-i)*xStepSize);
       fill(0);
       textSize(height/25);
       textAlign(CENTER,CENTER);
       text("+"+str(steps[i]), xStart-(stepCount-i)*xStepSize, height*eqnHeight);
     } else{
-      drawStep(runningTotal, steps[i], zeroLoc, stepSize, xStart-(stepCount-i+1)*xStepSize, color(255,0,100));
+      drawStep(runningTotal, steps[i], zeroLoc, stepSize, xStart-(stepCount-i+1)*xStepSize);
       fill(0);
       textSize(height/25);
       textAlign(CENTER,CENTER);
@@ -163,14 +163,18 @@ void drawStep(int start,  // value of base of arrow
               int value,  // size and direction of arrow
               int yZero,  // y-coordinate of 0
               int yStep,  // pixels per unit (up is positive)
-              int xLoc,   // x-coordinate of arrow
-              color colour){  // colour of arrow
+              int xLoc){  // x-coordinate of arrow
   int headLength=max(value/2, height/30);
   strokeWeight(2);
   stroke(0);
   line(xLoc,yZero+(yStep*(start+value)),xLoc+xStepSize,yZero+(yStep*(start+value)));
-  stroke(colour);
-  fill(colour);
+  if (value>=0){
+    stroke(0);
+    fill(0);
+  }else{
+    stroke(255,0,0);
+    fill(255,0,0);
+  }
   strokeWeight(width/200);
   if (value==0){
     ellipseMode(CENTER);
