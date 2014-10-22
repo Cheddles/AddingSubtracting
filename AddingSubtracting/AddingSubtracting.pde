@@ -13,6 +13,7 @@ int zeroLoc;
 int maxSteps=8;  // maximum number of arithmetic steps permitted for the app
 int[] steps = new int[maxSteps];  //contains the steps to be followed in order from 0-9
 int stepCount=0 ;  // the number of steps contained in the current equation
+int  doubleLoc;  // horizontal location of double-headed arrow (if drawn)
 
 boolean formingNew = false;  // true if currently dragging a new arrow step
 boolean verbose=false;  // whether the equation at the bottom should be written in verbose +(-2) format or traditional abbreviated -2 format
@@ -32,45 +33,48 @@ void draw(){
   int total=0;  // total of equation (used to calculate initial arrow spacing)
   String equation="";  // used too determine spacing of each step arrow.
   int xCurrent;  // used to step left while determining arrow location
-  int equationWidth=0;  // width (in pixels) of equation between mid-points of end terms
-  
+  float equationWidth=0;  // width (in pixels) of equation between mid-points of end terms
+  float stepWidth[]=new float[stepCount];  // width in pixels of each step
+    
   // recalculate values that depend on window size (in case of user-resize
   stepSize=int(height*(maxLoc-minLoc)/(max-min));  // negative step size so + value goes up (negative y step)
   //xStepSize=int(width/(maxSteps+2));  // number of horizontal pixels between arrows and number line
   zeroLoc=int(height*minLoc)-min*stepSize;  //vertical location of the 0 in pixels
-  //xStart=int(horStartLoc*width);  // x-coordinate of number line (from which arrows are spaced
+  doubleLoc=int(horStartLoc*width+1.5*stepSize);
+  int xNumLine=int(horStartLoc*width);  // x-coordinate of number line (from which arrows are spaced
   
   background(255);
   
   // determmine total sum and width of equation text
   for (int i=0; i<stepCount; i++){
     total=total+steps[i];
-    //equationWidth=equationWidth+int(textWidth("+("+str(steps[i])+")"));
+    // calculate width of each equation step
+    if(verbose) stepWidth[i]=textWidth("+("+str(steps[i])+")");
+    else{
+      if (steps[i]>=0) stepWidth[i]=textWidth("+"+str(steps[i]));
+      else stepWidth[i]=textWidth("-"+str(steps[i]));
+    }
   }
-  if (stepCount>0) equationWidth=equationWidth-int(textWidth("+("+str(steps[stepCount-1])+")"));
-  else equationWidth=equationWidth-stepSize;  // if no steps, extend gridlines to double-headed arrow.
-  equationWidth=equationWidth+int(textWidth("="+str(total)+")")/2);
-
+  // draw screen elements
+  if (stepCount==0){  // if no equation steps, draw "blank" screen
+    drawNumberLine(min, max, zeroLoc, xNumLine, stepSize, xNumLine-doubleLoc);
+    drawDoubleArrow(doubleLoc, zeroLoc);
+  }else{
+    for(int i=0; i<stepCount; i++){
+      equationWidth=equationWidth+stepWidth[i];
+    }
+    equationWidth=equationWidth-stepWidth[0]/2;  //substract outside half of first term
+    equationWidth=equationWidth-stepSize;
+equationWidth=textWidth("="+str(total))/2;
   drawNumberLine(min, max, zeroLoc, xStart, stepSize, equationWidth);
   
-  if((formingNew)||(stepCount==maxSteps)){  // align arrows to make space for double-headed new-step arrow
+  if((formingNew)||(stepCount==maxSteps)){  // align arrows without space for double-headed new-step arrow
     xStart=xStart-stepSize;
-    // draw non-counting, double-headed arrow to invite creation of a new step
-    stroke(100);
-    strokeWeight(3);
-    line((xStart),(zeroLoc+((runningTotal+0.5)*stepSize)),(xStart),(zeroLoc+((runningTotal-0.5)*stepSize)));
-    pushMatrix();
-      translate(xStart,zeroLoc+((runningTotal-1)*stepSize));
-      arrowHead(true, 3*stepSize/4);
-    popMatrix();
-    pushMatrix();
-      translate(xStart,zeroLoc+((runningTotal+1)*stepSize));
-      arrowHead(false, 3*stepSize/4);
-    popMatrix();
+    
   }else{ //align arrows directly from number line
     xStart=int(horStartLoc*width);
   }
-  
+  }
 //  for (int i=0; i<stepCount; i++){
 //    //draw arrows
 //    if((formingNew)||(stepCount==maxSteps)){
@@ -118,12 +122,12 @@ void draw(){
 }
 
 void mousePressed(){
-  int xStepSize=150;  //temp
+  //int xStepSize=150;  //temp
   int total=0;
   for(int i=0; i<stepCount; i++){  //go through all values to find running total
     total=total+steps[i];
   }
-  if ((overStart(mouseX, mouseY, (xStart-xStepSize), total, zeroLoc, stepSize))&&(stepCount<maxSteps)){
+  if ((overStart(mouseX, mouseY, doubleLoc , total, zeroLoc, stepSize))&&(stepCount<maxSteps)){
     stepCount++;
     formingNew=true; 
   }
@@ -138,7 +142,7 @@ void drawNumberLine(int min,    // minimum value of number line
                     int zero,// y-coordinate of 0
                     int x,      // x-coordinate of number line
                     int yStep,  // number of pixels (vertical) per number line unit
-                    int gridWidth){  // width of the gridlines
+                    float gridWidth){  // width of the gridlines
   textAlign(LEFT, CENTER);
   textSize(height/(2*(max-min)));
   strokeWeight(3);
@@ -149,7 +153,6 @@ void drawNumberLine(int min,    // minimum value of number line
     strokeWeight(1);
     stroke(200);
     line(x-gridWidth,zero+(i*yStep),x,zero+(i*yStep));
-    text(str(gridWidth),200,200);
 //    if (formingNew) line(x-stepCount*xStepSize,zero+(i*yStep), x, zero+(i*yStep));
 //    else line(x-(stepCount+1)*xStepSize,zero+(i*yStep), x, zero+(i*yStep));
     strokeWeight(3);
@@ -157,6 +160,8 @@ void drawNumberLine(int min,    // minimum value of number line
     line(x,zero+(i*yStep), x-width/100, zero+(i*yStep));
     text(str(i),x+width/100,zero+(i*yStep)-height/200);
   }
+  rect(100, 100, gridWidth, gridWidth);
+  text(str(gridWidth),200,200);
 }
 
 boolean overStart(int x,  // current x-coordinate of the mouse
@@ -266,4 +271,17 @@ void arrowHead(boolean up, int headLength){
       vertex(headLength/3,-headLength);
     endShape(CLOSE);
   }
+}
+
+void drawDoubleArrow(int x, int y){
+  // draw non-counting, double-headed arrow to invite creation of a new step
+    stroke(100);
+    strokeWeight(3);
+    line(x,y+(0.5*stepSize),x,y-(0.5*stepSize));
+    pushMatrix();
+      translate(x,y+stepSize);
+      arrowHead(false, 3*stepSize/4);
+      translate(0,-2*stepSize);
+      arrowHead(true, 3*stepSize/4);
+    popMatrix();
 }
