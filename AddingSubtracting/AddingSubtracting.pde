@@ -42,6 +42,7 @@ void draw(){
   zeroLoc=int(height*minLoc)-min*stepSize;  //vertical location of the 0 in pixels
   doubleLoc=int(horStartLoc*width+1.5*stepSize);
   int xNumLine=int(horStartLoc*width);  // x-coordinate of number line (from which arrows are spaced
+  //int offSet=0;  // horizontal offset (0 if forming, 
   
   background(255);
   
@@ -49,10 +50,18 @@ void draw(){
   for (int i=0; i<stepCount; i++){
     total=total+steps[i];
     // calculate width of each equation step
-    if(verbose) stepWidth[i]=textWidth("+("+str(steps[i])+")");
+    if(verbose){
+      stepWidth[i]=textWidth("+("+str(steps[i])+")");
+      equation=equation+"+("+str(steps[i])+")";
+    }
     else{
-      if (steps[i]>=0) stepWidth[i]=textWidth("+"+str(steps[i]));
-      else stepWidth[i]=textWidth("-"+str(steps[i]));
+      if (steps[i]>=0){
+        stepWidth[i]=textWidth("+"+str(steps[i]));
+        equation=equation+"+"+str(steps[i]);
+      }else{
+        stepWidth[i]=textWidth("-"+str(steps[i]));
+        equation=equation+"-"+str(steps[i]);
+      }
     }
   }
   // draw screen elements
@@ -60,7 +69,10 @@ void draw(){
     drawNumberLine(min, max, zeroLoc, xNumLine, stepSize, xNumLine-doubleLoc);
     drawDoubleArrow(doubleLoc, zeroLoc);
   }else{
-    for(int i=0; i<stepCount; i++){
+    drawNumberLine(min, max, zeroLoc, xNumLine, stepSize, int(textWidth()));
+    if(forming){
+    for(int i=(stepCount-1); i>-1; i--){
+      textWidth(step);
       equationWidth=equationWidth+stepWidth[i];
     }
     equationWidth=equationWidth-stepWidth[0]/2;  //substract outside half of first term
@@ -74,7 +86,7 @@ equationWidth=textWidth("="+str(total))/2;
   }else{ //align arrows directly from number line
     xStart=int(horStartLoc*width);
   }
-  }
+    }
 //  for (int i=0; i<stepCount; i++){
 //    //draw arrows
 //    if((formingNew)||(stepCount==maxSteps)){
