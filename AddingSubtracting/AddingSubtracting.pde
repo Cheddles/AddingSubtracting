@@ -4,7 +4,7 @@ float eqnHeight=0.95;  // height of equation steps display
 int max=10;  //maximum value of the number line
 float maxLoc=0.02;  //height of the minimum value as proportion of window height
 
-float horStartLoc=0.9;  // location of number line (starting horizontal location) for all arrows to extend left from
+float horStartLoc=0.88;  // location of number line (starting horizontal location) for all arrows to extend left from
 
 int stepSize;  // vertical size of unit step in pixels
 //int xStepSize;
@@ -94,6 +94,9 @@ void draw(){
       textSize(height/15);
       text(stepText[i],xNumLine-progWidth,eqnHeight*height);
       drawStep(runningTotal-steps[i], steps[i], zeroLoc, stepSize, xNumLine-progWidth);
+      strokeWeight(2);
+      stroke(0);
+      line(xNumLine-progWidth,zeroLoc+runningTotal*stepSize,xNumLine-progWidth+100,zeroLoc+runningTotal*stepSize);
       progWidth=progWidth+int(stepWidth[i]/2);
       if (i>0) progWidth=progWidth+int(stepWidth[i-1]/2);
       runningTotal=runningTotal-steps[i];
@@ -183,9 +186,6 @@ void drawStep(int start,  // value of base of arrow
               int xLoc){  // x-coordinate of arrow
   int xStepSize=150;  //temp
   int headLength=max(value/2, height/30);
-  strokeWeight(2);
-  stroke(0);
-  line(xLoc,yZero+(yStep*(start+value)),xLoc+xStepSize,yZero+(yStep*(start+value)));
   if (value>=0){
     stroke(0);
     fill(0);
