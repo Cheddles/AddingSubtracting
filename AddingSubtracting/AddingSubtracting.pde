@@ -74,20 +74,23 @@ void draw(){
     drawDoubleArrow(doubleLoc, zeroLoc);
   }else{
     drawNumberLine(min, max, zeroLoc, xNumLine, stepSize, int(textWidth(equation)));
-    progWidth=xNumLine-doubleLoc;
+    //progWidth=xNumLine-doubleLoc;
+    progWidth=int(textWidth("="+str(total))/2);
     if(!formingNew){
-      progWidth=progWidth-int(2*stepSize);
+      //progWidth=progWidth-int(textWidth("+(-88)")/2);
       drawDoubleArrow(doubleLoc, zeroLoc+total*stepSize);
-      progWidth=progWidth+int(2*stepSize);
-      progWidth=progWidth+int(textWidth("="+stepText[stepCount-1])/2);
+      //progWidth=progWidth+int(textWidth("+(-88)")/2);
+      progWidth=progWidth+int(textWidth(stepText[stepCount-1]+"=")/2);
+      text(stepText[stepCount-1]+"=",100,100);
     }else steps[stepCount-1]=formStep(mouseY, zeroLoc+((total-steps[stepCount-1])*stepSize));
     //draw arrows and steps
     fill(0);
     stroke(0);
-    textAlign(LEFT, CENTER);
+    textAlign(CENTER, CENTER);
     textSize(height/15);
-    text("="+str(total), xNumLine-int(textWidth("=")/2), eqnHeight*height);
+    text("="+str(total), xNumLine, eqnHeight*height);
     for(int i=(stepCount-1); i>-1; i--){
+      progWidth=progWidth+max(int(stepWidth[i]/2),-2*stepSize);
       fill(0);
       stroke(0);
       textAlign(CENTER,CENTER);
@@ -97,8 +100,7 @@ void draw(){
       strokeWeight(2);
       stroke(0);
       line(xNumLine-progWidth,zeroLoc+runningTotal*stepSize,xNumLine-progWidth+100,zeroLoc+runningTotal*stepSize);
-      progWidth=progWidth+int(stepWidth[i]/2);
-      if (i>0) progWidth=progWidth+int(stepWidth[i-1]/2);
+      progWidth=progWidth+max(int(stepWidth[i]/2),-2*stepSize);
       runningTotal=runningTotal-steps[i];
     }
   }
