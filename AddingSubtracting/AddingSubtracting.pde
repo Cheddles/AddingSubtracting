@@ -8,8 +8,8 @@ float horStartLoc=0.88;  // location of number line (starting horizontal locatio
 
 int stepSize;  // vertical size of unit step in pixels
 //int xStepSize;
-int xStart;  // centred location of "={answer}"
-int zeroLoc;
+//int xStart;  // centred location of "={answer}"
+int zeroLoc;   //vertical location of the 0 in pixels
 int maxSteps=8;  // maximum number of arithmetic steps permitted for the app
 int[] steps = new int[maxSteps];  //contains the steps to be followed in order from 0-9
 int stepCount=0 ;  // the number of steps contained in the current equation
@@ -42,8 +42,9 @@ void draw(){
   stepSize=int(height*(maxLoc-minLoc)/(max-min));  // negative step size so + value goes up (negative y step)
   //xStepSize=int(width/(maxSteps+2));  // number of horizontal pixels between arrows and number line
   zeroLoc=int(height*minLoc)-min*stepSize;  //vertical location of the 0 in pixels
-  doubleLoc=int(horStartLoc*width-(textWidth("+(-88)")/2));
+  doubleLoc=zeroLoc-int(textWidth("+(-88)")/2);  // constant spacing of first arrow from number line
   int xNumLine=int(horStartLoc*width);  // x-coordinate of number line (from which arrows are spaced
+  
   int progWidth=0;  //progressive width (in pixels) of equation being drawn (to centre of end element)
   //int offSet=0;  // horizontal offset (0 if forming, 
   
