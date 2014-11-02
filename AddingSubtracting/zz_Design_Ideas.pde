@@ -14,7 +14,7 @@ Consider setting arrow spacing by text size rather than equal spacing
 Future features:
   - arrow selection and deletion
   - drag to reorder
-  - colour-code + and - arrows
+  - colour-code + and - arrows (implemented)
   - small dots to haelp measure the length of arrows (implemented)
 
 */
