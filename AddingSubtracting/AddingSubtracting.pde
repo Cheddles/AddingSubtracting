@@ -29,7 +29,7 @@ void setup(){
 }
 
 void draw(){
-  textSize(height/15);
+
   int runningTotal=0;  // total of equation (working backwards)
   int total=0;  // total of equation (used to calculate initial arrow spacing)
   String equation="";  // used too determine spacing of each step arrow.
@@ -40,22 +40,19 @@ void draw(){
     
   // recalculate values that depend on window size (in case of user-resize
   stepSize=int(height*(maxLoc-minLoc)/(max-min));  // negative step size so + value goes up (negative y step)
-  //xStepSize=int(width/(maxSteps+2));  // number of horizontal pixels between arrows and number line
   zeroLoc=int(height*minLoc)-min*stepSize;  //vertical location of the 0 in pixels
   int xNumLine=int(horStartLoc*width);  // x-coordinate of number line (from which arrows are spaced
-  
   int progWidth=xNumLine;  //progressive location (in pixels) of equation being drawn (to centre of end element)
-  //int offSet=0;  // horizontal offset (0 if forming, 
   
   background(255);
-  
+  textSize(height/15);  // required to calculate the correct spacing using textWidth function
   if(verbose){
     progWidth=progWidth-int(textWidth("+(-88)")/2);
   } else{
     progWidth=progWidth-int(textWidth("-88")/2);
   }
   
-  dragLoc=progWidth;
+  dragLoc=progWidth;  //location of the dragging arrow for step creation
   
   // determine total sum and width of equation text
   for (int i=0; i<stepCount; i++){
@@ -75,6 +72,12 @@ void draw(){
     total=total+steps[i];
     runningTotal=total;
   }
+  if (formingNew){
+    total=total-steps[stepCount-1];
+    steps[stepCount-1]=formStep(mouseY, zeroLoc+(total*stepSize));
+    total=total+steps[stepCount-1];
+    runningTotal=total;
+  }
   // draw screen elements
   if (stepCount==0){  // if no equation steps, draw "blank" screen
     drawNumberLine(min, max, zeroLoc, xNumLine, stepSize, 0);
@@ -83,7 +86,6 @@ void draw(){
     drawNumberLine(min, max, zeroLoc, xNumLine, stepSize, int(textWidth(equation)));
     if(!formingNew){  // draw double arrow if required
       drawDoubleArrow(progWidth, zeroLoc+total*stepSize);
-      //progWidth=progWidth-int(textWidth("+88")/2);  // shift the "other half" of default element width
       progWidth=progWidth-int(textWidth("="+str(total))/2);
       fill(0);
       stroke(0);
@@ -94,14 +96,13 @@ void draw(){
     }else{
       fill(0);
       stroke(0);
-      steps[stepCount-1]=formStep(mouseY, zeroLoc+((total-steps[stepCount-1])*stepSize));
       textAlign(LEFT, CENTER);
       textSize(height/15);
       text("="+str(total), xNumLine, eqnHeight*height);
       progWidth=progWidth+int(stepWidth[stepCount-1]/2);
     }
+    
     //draw arrows and steps
-
     for(int i=(stepCount-1); i>-1; i--){
       progWidth=progWidth-int(stepWidth[i]/2);
       fill(0);
@@ -159,7 +160,6 @@ void drawNumberLine(int min,    // minimum value of number line
     line(x,zero+(i*yStep), x-width/100, zero+(i*yStep));
     text(str(i),x+width/100,zero+(i*yStep)-height/200);
   }
-  //text(str(dragLoc),200,200);
 }
 
 void keyPressed() {
