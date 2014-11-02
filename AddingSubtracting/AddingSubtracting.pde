@@ -193,9 +193,12 @@ boolean overStart(int x,  // current x-coordinate of the mouse
 
 int formStep(int y,
              int yStart){
-  int xStepSize=150;  //temp
+  int returnVal;  //the value to be returned
+  if (y<(zeroLoc+max*stepSize)) y=(zeroLoc+max*stepSize);
+  if (y>(zeroLoc+(min-1)*stepSize)) y=(zeroLoc+(min-1)*stepSize);
   if (formingNew){
-    return int((y-yStart-0.5)/stepSize);
+    if (yStart>y) return int(((float(y)-yStart)/stepSize)+0.5);
+    else return int(((float(y)-yStart)/stepSize)-0.5);
   }else{
     return steps[stepCount-1];
   }
