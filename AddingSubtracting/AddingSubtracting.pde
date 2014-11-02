@@ -4,7 +4,7 @@ float eqnHeight=0.95;  // height of equation steps display
 int max=10;  //maximum value of the number line
 float maxLoc=0.02;  //height of the minimum value as proportion of window height
 
-float horStartLoc=0.88;  // location of number line (starting horizontal location) for all arrows to extend left from
+float horStartLoc=0.85;  // location of number line (starting horizontal location) for all arrows to extend left from
 
 int stepSize;  // vertical size of unit step in pixels
 //int xStepSize;
@@ -13,7 +13,7 @@ int zeroLoc;   //vertical location of the 0 in pixels
 int maxSteps=8;  // maximum number of arithmetic steps permitted for the app
 int[] steps = new int[maxSteps];  //contains the steps to be followed in order from 0-9
 int stepCount=0 ;  // the number of steps contained in the current equation
-int  doubleLoc;  // horizontal location of double-headed arrow (if drawn)
+int dragLoc;  // horizontal location of double-headed arrow (if drawn)
 
 boolean formingNew = false;  // true if currently dragging a new arrow step
 boolean verbose=true;  // whether the equation at the bottom should be written in verbose +(-2) format or traditional abbreviated -2 format
@@ -42,21 +42,27 @@ void draw(){
   stepSize=int(height*(maxLoc-minLoc)/(max-min));  // negative step size so + value goes up (negative y step)
   //xStepSize=int(width/(maxSteps+2));  // number of horizontal pixels between arrows and number line
   zeroLoc=int(height*minLoc)-min*stepSize;  //vertical location of the 0 in pixels
-  doubleLoc=zeroLoc-int(textWidth("+(-88)")/2);  // constant spacing of first arrow from number line
   int xNumLine=int(horStartLoc*width);  // x-coordinate of number line (from which arrows are spaced
   
-  int progWidth=0;  //progressive width (in pixels) of equation being drawn (to centre of end element)
+  int progWidth=xNumLine;  //progressive location (in pixels) of equation being drawn (to centre of end element)
   //int offSet=0;  // horizontal offset (0 if forming, 
   
   background(255);
+  
+  if(verbose){
+    progWidth=progWidth-int(textWidth("+(-88)")/2);
+  } else{
+    progWidth=progWidth-int(textWidth("-88")/2);
+  }
+  
+  dragLoc=progWidth;
   
   // determine total sum and width of equation text
   for (int i=0; i<stepCount; i++){
     // calculate width of each equation step
     if(verbose){
       stepText[i]="+("+str(steps[i])+")";
-    }
-    else{
+    } else{
       if (steps[i]>=0){
         stepText[i]="+"+str(steps[i]);
       }else{
@@ -71,37 +77,44 @@ void draw(){
   }
   // draw screen elements
   if (stepCount==0){  // if no equation steps, draw "blank" screen
-    drawNumberLine(min, max, zeroLoc, xNumLine, stepSize, xNumLine-doubleLoc);
-    drawDoubleArrow(doubleLoc, zeroLoc);
+    drawNumberLine(min, max, zeroLoc, xNumLine, stepSize, 0);
+    drawDoubleArrow(progWidth, zeroLoc);
   }else{
     drawNumberLine(min, max, zeroLoc, xNumLine, stepSize, int(textWidth(equation)));
-    //progWidth=xNumLine-doubleLoc;
-    progWidth=int(textWidth("="+str(total))/2);
-    if(!formingNew){
-      //progWidth=progWidth-int(textWidth("+(-88)")/2);
-      drawDoubleArrow(doubleLoc, zeroLoc+total*stepSize);
-      //progWidth=progWidth+int(textWidth("+(-88)")/2);
-      progWidth=progWidth+int(textWidth(stepText[stepCount-1]+"=")/2);
-      text(stepText[stepCount-1]+"=",100,100);
-    }else steps[stepCount-1]=formStep(mouseY, zeroLoc+((total-steps[stepCount-1])*stepSize));
+    if(!formingNew){  // draw double arrow if required
+      drawDoubleArrow(progWidth, zeroLoc+total*stepSize);
+      //progWidth=progWidth-int(textWidth("+88")/2);  // shift the "other half" of default element width
+      progWidth=progWidth-int(textWidth("="+str(total))/2);
+      fill(0);
+      stroke(0);
+      textAlign(CENTER, CENTER);
+      textSize(height/15);
+      text("="+str(total), dragLoc, eqnHeight*height);
+      progWidth=progWidth-int(textWidth("="+str(total))/2);
+    }else{
+      fill(0);
+      stroke(0);
+      steps[stepCount-1]=formStep(mouseY, zeroLoc+((total-steps[stepCount-1])*stepSize));
+      textAlign(LEFT, CENTER);
+      textSize(height/15);
+      text("="+str(total), xNumLine, eqnHeight*height);
+      progWidth=progWidth+int(stepWidth[stepCount-1]/2);
+    }
     //draw arrows and steps
-    fill(0);
-    stroke(0);
-    textAlign(CENTER, CENTER);
-    textSize(height/15);
-    text("="+str(total), xNumLine, eqnHeight*height);
+
     for(int i=(stepCount-1); i>-1; i--){
-      progWidth=progWidth+max(int(stepWidth[i]/2),-2*stepSize);
+      progWidth=progWidth-int(stepWidth[i]/2);
       fill(0);
       stroke(0);
       textAlign(CENTER,CENTER);
       textSize(height/15);
-      text(stepText[i],xNumLine-progWidth,eqnHeight*height);
-      drawStep(runningTotal-steps[i], steps[i], zeroLoc, stepSize, xNumLine-progWidth);
+      text(stepText[i],progWidth,eqnHeight*height);
+      drawStep(runningTotal-steps[i], steps[i], zeroLoc, stepSize, progWidth);
       strokeWeight(2);
       stroke(0);
-      line(xNumLine-progWidth,zeroLoc+runningTotal*stepSize,xNumLine-progWidth+100,zeroLoc+runningTotal*stepSize);
-      progWidth=progWidth+max(int(stepWidth[i]/2),-2*stepSize);
+      if(i<stepCount-1) line(progWidth,zeroLoc+runningTotal*stepSize,progWidth+(stepWidth[i]+stepWidth[i+1])/2,zeroLoc+runningTotal*stepSize);
+      else line(progWidth,zeroLoc+runningTotal*stepSize,progWidth+(stepWidth[i]+int(textWidth("="+str(total))))/2,zeroLoc+runningTotal*stepSize);
+      progWidth=progWidth-int(stepWidth[i]/2);
       runningTotal=runningTotal-steps[i];
     }
   }
@@ -113,7 +126,7 @@ void mousePressed(){
   for(int i=0; i<stepCount; i++){  //go through all values to find running total
     total=total+steps[i];
   }
-  if ((overStart(mouseX, mouseY, doubleLoc , total, zeroLoc, stepSize))&&(stepCount<maxSteps)){
+  if ((overStart(mouseX, mouseY, dragLoc , total, zeroLoc, stepSize))&&(stepCount<maxSteps)){
     stepCount++;
     formingNew=true; 
   }
@@ -146,7 +159,7 @@ void drawNumberLine(int min,    // minimum value of number line
     line(x,zero+(i*yStep), x-width/100, zero+(i*yStep));
     text(str(i),x+width/100,zero+(i*yStep)-height/200);
   }
-  text(str(stepSize),200,200);
+  //text(str(dragLoc),200,200);
 }
 
 boolean overStart(int x,  // current x-coordinate of the mouse
