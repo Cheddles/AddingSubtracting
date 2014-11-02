@@ -83,6 +83,7 @@ void draw(){
     drawNumberLine(min, max, zeroLoc, xNumLine, stepSize, 0);
     drawDoubleArrow(progWidth, zeroLoc);
   }else{
+    // draw grid lines here
     drawNumberLine(min, max, zeroLoc, xNumLine, stepSize, int(textWidth(equation)));
     if(!formingNew){  // draw double arrow if required
       drawDoubleArrow(progWidth, zeroLoc+total*stepSize);
@@ -150,11 +151,9 @@ void drawNumberLine(int min,    // minimum value of number line
   fill(0);
   line(x, zero+min*stepSize, x, zero+max*stepSize);  // draw vertical line
   for(int i=min; i<(max+1); i++){  //draw tick marks for whole number locations
-    strokeWeight(1);
-    stroke(200);
-    line(x-gridWidth,zero+(i*yStep),x,zero+(i*yStep));
-//    if (formingNew) line(x-stepCount*xStepSize,zero+(i*yStep), x, zero+(i*yStep));
-//    else line(x-(stepCount+1)*xStepSize,zero+(i*yStep), x, zero+(i*yStep));
+//    strokeWeight(1);
+//    stroke(200);
+//    line(x-gridWidth,zero+(i*yStep),x,zero+(i*yStep));
     strokeWeight(3);
     stroke(0);
     line(x,zero+(i*yStep), x-width/100, zero+(i*yStep));
@@ -195,7 +194,7 @@ int formStep(int y,
              int yStart){
   int returnVal;  //the value to be returned
   if (y<(zeroLoc+max*stepSize)) y=(zeroLoc+max*stepSize);
-  if (y>(zeroLoc+(min-1)*stepSize)) y=(zeroLoc+(min-1)*stepSize);
+  if (y>(zeroLoc+min*stepSize)) y=(zeroLoc+min*stepSize);
   if (formingNew){
     if (yStart>y) return int(((float(y)-yStart)/stepSize)+0.5);
     else return int(((float(y)-yStart)/stepSize)-0.5);
