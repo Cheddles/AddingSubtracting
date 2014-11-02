@@ -10,13 +10,13 @@ int stepSize;  // vertical size of unit step in pixels
 //int xStepSize;
 //int xStart;  // centred location of "={answer}"
 int zeroLoc;   //vertical location of the 0 in pixels
-int maxSteps=8;  // maximum number of arithmetic steps permitted for the app
+int maxSteps=20;  // maximum number of arithmetic steps permitted for the app
 int[] steps = new int[maxSteps];  //contains the steps to be followed in order from 0-9
 int stepCount=0 ;  // the number of steps contained in the current equation
 int dragLoc;  // horizontal location of double-headed arrow (if drawn)
 
 boolean formingNew = false;  // true if currently dragging a new arrow step
-boolean verbose=true;  // whether the equation at the bottom should be written in verbose +(-2) format or traditional abbreviated -2 format
+boolean verbose=false;  // whether the equation at the bottom should be written in verbose +(-2) format or traditional abbreviated -2 format
 
 String test="testing";
 
@@ -162,6 +162,12 @@ void drawNumberLine(int min,    // minimum value of number line
   //text(str(dragLoc),200,200);
 }
 
+void keyPressed() {
+  if (!formingNew&&(stepCount>0)&&((keyCode == BACKSPACE)||(keyCode == DELETE))) {
+    stepCount--;
+  }
+}
+
 boolean overStart(int x,  // current x-coordinate of the mouse
                   int y,  // current y-coordinate of the mouse
                   int xTarget,  // x-coordinate of the target spot
@@ -200,7 +206,7 @@ void drawStep(int start,  // value of base of arrow
               int yZero,  // y-coordinate of 0
               int yStep,  // pixels per unit (up is positive)
               int xLoc){  // x-coordinate of arrow
-  int xStepSize=150;  //temp
+  //int xStepSize=150;  //temp
   int headLength=max(value/2, height/30);
   if (value>=0){
     stroke(0);
@@ -224,7 +230,7 @@ void drawStep(int start,  // value of base of arrow
       arrowHead(false, headLength);
       translate(0, -yStep*value/2);
       rotate(-PI/2);
-      textSize(-2*stepSize);
+      textSize(height/20);
       textAlign(CENTER);
       fill(0);
       text(str(value),0,yStep/2);
@@ -241,7 +247,7 @@ void drawStep(int start,  // value of base of arrow
       arrowHead(true, headLength);
       translate(0, -yStep*value/2);
       rotate(-PI/2);
-      textSize(xStepSize/3);
+      textSize(height/20);
       textAlign(CENTER);
       fill(0);
       text("+"+str(value),0,yStep/2);
