@@ -33,9 +33,9 @@ void draw(){
   int runningTotal=0;  // total of equation (working backwards)
   int dragWidth;  //width of first section (all other arrows are sized by the width of their text)
   int total=0;  // total of equation (used to calculate initial arrow spacing)
-  String equation="";  // used too determine spacing of each step arrow.
+  //String equation="";  // used to determine spacing of each step arrow.
   int xCurrent;  // used to step left while determining arrow location
-  float equationWidth=0;  // width (in pixels) of equation between mid-points of end terms
+  float equationWidth=0;  // width (in pixels) of equation from start to number line
   float stepWidth[]=new float[stepCount];  // width in pixels of each step
   String stepText[]=new String[stepCount];  // string of each step including brackets if in verbose mode
     
@@ -57,9 +57,8 @@ void draw(){
   equationWidth=dragWidth;
   progWidth=int(dragWidth/2);
   line(xNumLine-equationWidth,0,xNumLine-equationWidth,height);  // temp line
-  dragLoc=progWidth;  //location of the dragging arrow for step creation
-  //equationWidth=xNumLine-progWidth;
-  
+  dragLoc=xNumLine-progWidth;  //location of the dragging arrow for step creation
+    
   // determine total sum and width of equation text
   for (int i=0; i<stepCount; i++){
     // calculate width of each equation step
@@ -74,44 +73,47 @@ void draw(){
     }
     textSize(height/15);
     stepWidth[i]=textWidth(stepText[i]);
-    equation=equation+stepText[i];
+    //equation=equation+stepText[i];
     equationWidth=equationWidth+stepWidth[i];
     total=total+steps[i];
     runningTotal=total;
   }
   if (stepCount>0) equationWidth=equationWidth-stepWidth[stepCount-1]/2;
-  if (formingNew){
-    total=total-steps[stepCount-1];
+  if (formingNew){  // create the new arrow
+    total=total-steps[stepCount-1];  // this is required to stop the jittering as integer changes happen to the forming element
     steps[stepCount-1]=formStep(mouseY, zeroLoc+(total*stepSize));
     total=total+steps[stepCount-1];
     runningTotal=total;
   }
   // draw screen elements
-  drawGridLines(xNumLine, int(equationWidth));
+  //drawGridLines(xNumLine, int(equationWidth));
   drawNumberLine(min, max, zeroLoc, xNumLine, stepSize);
   if (stepCount==0){  // if no equation steps, draw "blank" screen
-    drawDoubleArrow(progWidth, zeroLoc);
+    drawDoubleArrow(dragLoc, zeroLoc);
   }else{
     if(!formingNew){  // draw double arrow if required
-      drawDoubleArrow(progWidth, zeroLoc+total*stepSize);
-      progWidth=progWidth-int(textWidth("=-88")/2);
+      drawDoubleArrow(dragLoc, zeroLoc+total*stepSize);
+      progWidth=dragLoc;
       fill(0);
       stroke(0);
       textAlign(CENTER, CENTER);
       textSize(height/15);
-      text("=-88", dragLoc, eqnHeight*height);
-      //text("="+str(total), dragLoc, eqnHeight*height);
-      progWidth=progWidth-int(textWidth("="+str(total))/2);
+      //text("=-88", dragLoc, eqnHeight*height);
+      text("="+str(total), progWidth, eqnHeight*height);
+      progWidth=progWidth-dragWidth/2;
     }else{
+      stepWidth[stepCount-1]=dragWidth;
+      progWidth=xNumLine;
       fill(0);
       stroke(0);
       textAlign(LEFT, CENTER);
       textSize(height/15);
-      text("="+str(total), xNumLine, eqnHeight*height);
-      progWidth=progWidth+int(stepWidth[stepCount-1]/2);
+      text("="+str(total), progWidth, eqnHeight*height);
+      //progWidth=progWidth-int(stepWidth[stepCount-1]/2);
     }
     
     //draw arrows and steps
+    //drawGridLines(xNumLine, xNumLine-int(progWidth));
     for(int i=(stepCount-1); i>-1; i--){
       progWidth=progWidth-int(stepWidth[i]/2);
       fill(0);
