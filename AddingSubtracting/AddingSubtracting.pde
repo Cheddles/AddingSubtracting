@@ -16,7 +16,7 @@ int stepCount=0 ;  // the number of steps contained in the current equation
 int dragLoc;  // horizontal location of double-headed arrow (if drawn)
 
 boolean formingNew = false;  // true if currently dragging a new arrow step
-boolean verbose=false;  // whether the equation at the bottom should be written in verbose +(-2) format or traditional abbreviated -2 format
+boolean verbose=true;  // whether the equation at the bottom should be written in verbose +(-2) format or traditional abbreviated -2 format
 
 String test="testing";
 
@@ -31,6 +31,7 @@ void setup(){
 void draw(){
 
   int runningTotal=0;  // total of equation (working backwards)
+  int dragWidth;  //width of first section (all other arrows are sized by the width of their text)
   int total=0;  // total of equation (used to calculate initial arrow spacing)
   String equation="";  // used too determine spacing of each step arrow.
   int xCurrent;  // used to step left while determining arrow location
@@ -47,12 +48,17 @@ void draw(){
   background(255);
   textSize(height/15);  // required to calculate the correct spacing using textWidth function
   if(verbose){
-    progWidth=progWidth-int(textWidth("+(-88)")/2);
+    //progWidth=progWidth-int(textWidth("+(-88)")/2);
+    dragWidth=int(textWidth("+(-88)"));
   } else{
-    progWidth=progWidth-int(textWidth("-88")/2);
+    //progWidth=progWidth-int(textWidth("=-88")/2);
+    dragWidth=int(textWidth("=-88"));
   }
-  
+  equationWidth=dragWidth;
+  progWidth=int(dragWidth/2);
+  line(xNumLine-equationWidth,0,xNumLine-equationWidth,height);  // temp line
   dragLoc=progWidth;  //location of the dragging arrow for step creation
+  //equationWidth=xNumLine-progWidth;
   
   // determine total sum and width of equation text
   for (int i=0; i<stepCount; i++){
@@ -69,9 +75,11 @@ void draw(){
     textSize(height/15);
     stepWidth[i]=textWidth(stepText[i]);
     equation=equation+stepText[i];
+    equationWidth=equationWidth+stepWidth[i];
     total=total+steps[i];
     runningTotal=total;
   }
+  if (stepCount>0) equationWidth=equationWidth-stepWidth[stepCount-1]/2;
   if (formingNew){
     total=total-steps[stepCount-1];
     steps[stepCount-1]=formStep(mouseY, zeroLoc+(total*stepSize));
@@ -79,20 +87,20 @@ void draw(){
     runningTotal=total;
   }
   // draw screen elements
+  drawGridLines(xNumLine, int(equationWidth));
+  drawNumberLine(min, max, zeroLoc, xNumLine, stepSize);
   if (stepCount==0){  // if no equation steps, draw "blank" screen
-    drawNumberLine(min, max, zeroLoc, xNumLine, stepSize, 0);
     drawDoubleArrow(progWidth, zeroLoc);
   }else{
-    // draw grid lines here
-    drawNumberLine(min, max, zeroLoc, xNumLine, stepSize, int(textWidth(equation)));
     if(!formingNew){  // draw double arrow if required
       drawDoubleArrow(progWidth, zeroLoc+total*stepSize);
-      progWidth=progWidth-int(textWidth("="+str(total))/2);
+      progWidth=progWidth-int(textWidth("=-88")/2);
       fill(0);
       stroke(0);
       textAlign(CENTER, CENTER);
       textSize(height/15);
-      text("="+str(total), dragLoc, eqnHeight*height);
+      text("=-88", dragLoc, eqnHeight*height);
+      //text("="+str(total), dragLoc, eqnHeight*height);
       progWidth=progWidth-int(textWidth("="+str(total))/2);
     }else{
       fill(0);
@@ -142,8 +150,8 @@ void drawNumberLine(int min,    // minimum value of number line
                     int max,    // maximum value of number line
                     int zero,// y-coordinate of 0
                     int x,      // x-coordinate of number line
-                    int yStep,  // number of pixels (vertical) per number line unit
-                    float gridWidth){  // width of the gridlines
+                    int yStep){  // number of pixels (vertical) per number line unit
+                    //float gridWidth){  // width of the gridlines
   textAlign(LEFT, CENTER);
   textSize(height/(2*(max-min)));
   strokeWeight(3);
@@ -158,6 +166,14 @@ void drawNumberLine(int min,    // minimum value of number line
     stroke(0);
     line(x,zero+(i*yStep), x-width/100, zero+(i*yStep));
     text(str(i),x+width/100,zero+(i*yStep)-height/200);
+  }
+}
+
+void drawGridLines(int rightBound, int gridWidth){
+  for(int i=min; i<(max+1); i++){  //draw tick marks for whole number locations
+    strokeWeight(1);
+    stroke(200);
+    line(rightBound-gridWidth,zeroLoc+(i*stepSize),rightBound,zeroLoc+(i*stepSize));
   }
 }
 
