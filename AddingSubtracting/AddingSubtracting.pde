@@ -3,22 +3,15 @@ float minLoc=0.9;  //height of the minimum value as proportion of window height
 float eqnHeight=0.95;  // height of equation steps display
 int max=10;  //maximum value of the number line
 float maxLoc=0.02;  //height of the minimum value as proportion of window height
-
 float horStartLoc=0.85;  // location of number line (starting horizontal location) for all arrows to extend left from
-
 int stepSize;  // vertical size of unit step in pixels
-//int xStepSize;
-//int xStart;  // centred location of "={answer}"
 int zeroLoc;   //vertical location of the 0 in pixels
 int maxSteps=20;  // maximum number of arithmetic steps permitted for the app
 int[] steps = new int[maxSteps];  //contains the steps to be followed in order from 0-9
 int stepCount=0 ;  // the number of steps contained in the current equation
 int dragLoc;  // horizontal location of double-headed arrow (if drawn)
-
 boolean formingNew = false;  // true if currently dragging a new arrow step
-boolean verbose=true;  // whether the equation at the bottom should be written in verbose +(-2) format or traditional abbreviated -2 format
-
-String test="testing";
+boolean verbose=false;  // whether the equation at the bottom should be written in verbose +(-2) format or traditional abbreviated -2 format
 
 void setup(){
   size(800,600);
@@ -29,11 +22,9 @@ void setup(){
 }
 
 void draw(){
-
   int runningTotal=0;  // total of equation (working backwards)
   int dragWidth;  //width of first section (all other arrows are sized by the width of their text)
   int total=0;  // total of equation (used to calculate initial arrow spacing)
-  //String equation="";  // used to determine spacing of each step arrow.
   int xCurrent;  // used to step left while determining arrow location
   float equationWidth=0;  // width (in pixels) of equation from start to number line
   float stepWidth[]=new float[stepCount];  // width in pixels of each step
@@ -48,15 +39,12 @@ void draw(){
   background(255);
   textSize(height/15);  // required to calculate the correct spacing using textWidth function
   if(verbose){
-    //progWidth=progWidth-int(textWidth("+(-88)")/2);
     dragWidth=int(textWidth("+(-88)"));
   } else{
-    //progWidth=progWidth-int(textWidth("=-88")/2);
     dragWidth=int(textWidth("=-88"));
   }
   equationWidth=dragWidth;
   progWidth=int(dragWidth/2);
-  line(xNumLine-equationWidth,0,xNumLine-equationWidth,height);  // temp line
   dragLoc=xNumLine-progWidth;  //location of the dragging arrow for step creation
     
   // determine total sum and width of equation text
@@ -73,12 +61,11 @@ void draw(){
     }
     textSize(height/15);
     stepWidth[i]=textWidth(stepText[i]);
-    //equation=equation+stepText[i];
-    equationWidth=equationWidth+stepWidth[i];
+    if((i<stepCount-1)||(!formingNew)) equationWidth=equationWidth+stepWidth[i];
     total=total+steps[i];
     runningTotal=total;
   }
-  if (stepCount>0) equationWidth=equationWidth-stepWidth[stepCount-1]/2;
+  if (stepCount>0) equationWidth=equationWidth-stepWidth[0]/2;
   if (formingNew){  // create the new arrow
     total=total-steps[stepCount-1];  // this is required to stop the jittering as integer changes happen to the forming element
     steps[stepCount-1]=formStep(mouseY, zeroLoc+(total*stepSize));
@@ -86,13 +73,14 @@ void draw(){
     runningTotal=total;
   }
   // draw screen elements
-  //drawGridLines(xNumLine, int(equationWidth));
+  if((formingNew)&&(stepCount==1)) equationWidth=dragWidth;
+  drawGridLines(xNumLine, int(equationWidth));
   drawNumberLine(min, max, zeroLoc, xNumLine, stepSize);
   if (stepCount==0){  // if no equation steps, draw "blank" screen
-    drawDoubleArrow(dragLoc, zeroLoc);
+    drawDoubleArrow(dragLoc, zeroLoc, dragWidth/2);
   }else{
     if(!formingNew){  // draw double arrow if required
-      drawDoubleArrow(dragLoc, zeroLoc+total*stepSize);
+      drawDoubleArrow(dragLoc, zeroLoc+total*stepSize, dragWidth/2);
       progWidth=dragLoc;
       fill(0);
       stroke(0);
@@ -109,7 +97,6 @@ void draw(){
       textAlign(LEFT, CENTER);
       textSize(height/15);
       text("="+str(total), progWidth, eqnHeight*height);
-      //progWidth=progWidth-int(stepWidth[stepCount-1]/2);
     }
     
     //draw arrows and steps
@@ -121,11 +108,8 @@ void draw(){
       textAlign(CENTER,CENTER);
       textSize(height/15);
       text(stepText[i],progWidth,eqnHeight*height);
-      drawStep(runningTotal-steps[i], steps[i], zeroLoc, stepSize, progWidth);
-      strokeWeight(2);
-      stroke(0);
-      if(i<stepCount-1) line(progWidth,zeroLoc+runningTotal*stepSize,progWidth+(stepWidth[i]+stepWidth[i+1])/2,zeroLoc+runningTotal*stepSize);
-      else line(progWidth,zeroLoc+runningTotal*stepSize,progWidth+(stepWidth[i]+int(textWidth("="+str(total))))/2,zeroLoc+runningTotal*stepSize);
+      if (i>0) drawStep(runningTotal-steps[i], steps[i], zeroLoc, stepSize, progWidth, int(stepWidth[i]/2), int(stepWidth[i]/2));
+      else drawStep(runningTotal-steps[i], steps[i], zeroLoc, stepSize, progWidth, 0, int(stepWidth[i]/2));
       progWidth=progWidth-int(stepWidth[i]/2);
       runningTotal=runningTotal-steps[i];
     }
@@ -200,7 +184,6 @@ boolean overStart(int x,  // current x-coordinate of the mouse
 //    }
 //  }
   rSquared=(x-xTarget)*(x-xTarget)+(y-zero-(yVal*yStep))*(y-zero-(yVal*yStep));
-  test=str(rSquared);
   if (rSquared<(yStep*yStep)){
     return true;
   } else {
@@ -225,8 +208,13 @@ void drawStep(int start,  // value of base of arrow
               int value,  // size and direction of arrow
               int yZero,  // y-coordinate of 0
               int yStep,  // pixels per unit (up is positive)
-              int xLoc){  // x-coordinate of arrow
-  //int xStepSize=150;  //temp
+              int xLoc,   // x-coordinate of arrow
+              int stepLeft,  // number of pixels that the guide line should extend left from the base of the arrow
+              int stepRight){  // number of pixels that the guide line should extend right from the tip of the arrow
+  // draw guide lines first (to be underneath arrows)
+  strokeWeight(2);
+  line((xLoc-stepLeft),yZero+(yStep*start),xLoc,yZero+(yStep*start));
+  line(xLoc,yZero+(yStep*(start+value)),xLoc+stepRight,yZero+(yStep*(start+value)));
   int headLength=max(value/2, height/30);
   if (value>=0){
     stroke(0);
@@ -294,15 +282,17 @@ void arrowHead(boolean up, int headLength){
   }
 }
 
-void drawDoubleArrow(int x, int y){
+void drawDoubleArrow(int x, int y, int halfWidth){
   // draw non-counting, double-headed arrow to invite creation of a new step
-    stroke(100);
-    strokeWeight(3);
-    line(x,y+(0.5*stepSize),x,y-(0.5*stepSize));
-    pushMatrix();
-      translate(x,y+stepSize);
-      arrowHead(false, 3*stepSize/4);
-      translate(0,-2*stepSize);
-      arrowHead(true, 3*stepSize/4);
-    popMatrix();
+  strokeWeight(2);
+  line(x-halfWidth,y,x+halfWidth,y);
+  stroke(100);
+  strokeWeight(3);
+  line(x,y+(0.5*stepSize),x,y-(0.5*stepSize));
+  pushMatrix();
+    translate(x,y+stepSize);
+    arrowHead(false, 3*stepSize/4);
+    translate(0,-2*stepSize);
+    arrowHead(true, 3*stepSize/4);
+  popMatrix();
 }
